@@ -1,7 +1,7 @@
-import { Table, InsertForm, EditForm, InsertBarangKeluar } from "../Atomics/Atomics"
+import { Table, InsertForm, EditForm, InsertBarangKeluar, Pencarian } from "../Atomics/Atomics"
 import { useFetch } from "../../Config/useFetch"
 import { Link } from "react-router-dom"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { addDoc, collection, deleteDoc, doc, getDoc, onSnapshot } from "firebase/firestore"
 import { db } from "../../Config/firebase"
 
@@ -88,11 +88,30 @@ export const BarangMasukElektronik = () => {
 
 export const LaporanBarangMasukAtk = () => {
     const { data: laporanBarangMasukAtk, loading: laporanLoadingMasukAtk } = useFetch('stokBarangAtk')
+    const [isQuery, setQuery] = useState([])
 
     const Thtd = ['Nama Barang', 'Merk', 'QTY', 'Waktu masuk', 'Pengirim', 'No Seri', 'Keterangan']
 
     const Tbtd = ['namaBarang', 'merk', 'qty', 'time', 'pengirim', 'noSeri', 'keterangan']
 
+  const input = useRef(null)
+    useEffect(()=>{
+        setQuery(laporanBarangMasukAtk)
+    },[laporanBarangMasukAtk])
+
+    const handleChange = e =>{
+        if(input.current.value === ""){
+            setQuery(laporanBarangMasukAtk)
+        }else{     
+            // setQuery(e.target.value)
+            const result = laporanBarangMasukAtk.filter(item=>{
+                if(item.namaBarang.toLowerCase() === e.target.value || item.noSeri.toLowerCase() === e.target.value || item.merk.toLowerCase() === e.target.value || item.pengirim.toLowerCase() === e.target.value){
+                    return {...item}
+                }
+            })
+            setQuery(result)
+        }
+    }
     laporanBarangMasukAtk.forEach(item => {
         if (item.qty <= 0) {
             const docRef = doc(db, 'stokBarangAtk', item.id)
@@ -103,9 +122,13 @@ export const LaporanBarangMasukAtk = () => {
     return (
         <div className="sectionBarangMasuk">
             <h1>Table Laporan Stok Barang Atk</h1>
+            <div className="pencarian">
+                <input type="text" onChange={handleChange} ref={input}/>
+                <button>Cari</button>
+            </div>
             {laporanLoadingMasukAtk &&
                 <Table
-                    data={laporanBarangMasukAtk} table='stokBarangAtk'
+                    data={isQuery} table='stokBarangAtk'
                     // table2='stokBarangelektronik'
                     Thtd={Thtd}
                     Tbtd={Tbtd}
@@ -116,12 +139,31 @@ export const LaporanBarangMasukAtk = () => {
 }
 
 export const LaporanBarangMasukElektronik = () => {
-    const [isQuery, setQuery] = useState('')
     const { data: laporanBarangMasukElektronik, loading: laporanLoadingMasukElektronik } = useFetch('stokBarangElektronik')
 
-    const Thtd = ['Nama Barang', 'Merk', 'QTY', 'Waktu masuk', 'Pengirim', 'No Seri', 'Keterangan']
+    const [isQuery, setQuery] = useState([])
 
+    const Thtd = ['Nama Barang', 'Merk', 'QTY', 'Waktu masuk', 'Pengirim', 'No Seri', 'Keterangan']
     const Tbtd = ['namaBarang', 'merk', 'qty', 'time', 'pengirim', 'noSeri', 'keterangan']
+
+    const input = useRef(null)
+    useEffect(()=>{
+        setQuery(laporanBarangMasukElektronik)
+    },[laporanBarangMasukElektronik])
+
+    const handleChange = e =>{
+        if(input.current.value === ""){
+            setQuery(laporanBarangMasukElektronik)
+        }else{     
+            // setQuery(e.target.value)
+            const result = laporanBarangMasukElektronik.filter(item=>{
+                if(item.namaBarang === e.target.value || item.noSeri === e.target.value || item.merk === e.target.value || item.pengirim === e.target.value){
+                    return {...item}
+                }
+            })
+            setQuery(result)
+        }
+    }
 
 
     laporanBarangMasukElektronik.forEach(item => {
@@ -139,18 +181,16 @@ export const LaporanBarangMasukElektronik = () => {
         }
     })
 
-
-
     return (
         <div className="sectionBarangMasuk">
             <h1>Table Stok Barang Elektronik</h1>
-            <input type="text" onChange={e => {
-                setQuery(e.target.value)
-            }} />
-            <button>Cari</button>
+            <div className="pencarian">
+                <input type="text" onChange={handleChange} ref={input}/>
+                <button>Cari</button>
+            </div>
             {laporanLoadingMasukElektronik &&
                 <Table
-                    data={laporanBarangMasukElektronik} table='stokBarangElekronik'
+                    data={isQuery} table='stokBarangElekronik'
                     table2='stokBarangelektronik'
                     Thtd={Thtd}
                     Tbtd={Tbtd}
