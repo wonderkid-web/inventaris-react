@@ -3,7 +3,9 @@ import { useFetch } from "../../Config/useFetch"
 import { Link } from "react-router-dom"
 import { useEffect, useState, useRef } from "react"
 import { addDoc, collection, deleteDoc, doc, getDoc, onSnapshot } from "firebase/firestore"
-import { db } from "../../Config/firebase"
+import { db, signInWithGoogle, signOutUser } from "../../Config/firebase"
+
+
 
 
 export const Navigasi = () => {
@@ -12,7 +14,8 @@ export const Navigasi = () => {
             <Link to="/barangMasuk">Barang Masuk</Link>
             <Link to="/laporan">Stok Barang</Link>
             <Link to="/barangKeluar">Barang Keluar</Link>
-
+            <button onClick={signInWithGoogle}>Sign In</button>
+            <button onClick={signOutUser}>Logout</button>
         </div>
     )
 }
@@ -27,19 +30,33 @@ export const SecondNav = () => {
     )
 }
 export const BarangMasukAtk = () => {
+    const [name, setName] = useState('')
+    const [qty, setQty] = useState(false)
+    const [Thtd, setThtd] = useState(['Nama Barang', 'Merk', 'QTY', 'Waktu masuk', 'Pengirim', 'No Seri', 'Keterangan'])
+    const [Tbtd, setTbtd] = useState(['namaBarang', 'merk', 'qty', 'time', 'pengirim', 'noSeri', 'keterangan'])
     const { data: barangMasukAtk, loading: loadingMasukAtk } = useFetch('barangMasukAtk')
+    const nama = useRef(null)
 
 
 
-    const Thtd = ['Nama Barang', 'Merk', 'QTY', 'Waktu masuk', 'Pengirim', 'No Seri', 'Keterangan', 'Opsi', 'Tambah QTY barang']
-
-    const Tbtd = ['namaBarang', 'merk', 'qty', 'time', 'pengirim', 'noSeri', 'keterangan']
+    useEffect(()=>{
+        if(localStorage.getItem('name') === "muhammad wahyu ramadhan"){
+            setThtd([
+                'namaBarang', 'merk', 'qty', 'time', 'pengirim', 'noSeri', 'keterangan', 'Opsi', 'Tambah Qty?'
+            ])
+            setQty(true)
+            setName(`${localStorage.getItem('name')} adalah Admin Loh!`)
+        }else if(localStorage.getItem('name') === undefined){
+            nama.current.style.display = 'none'
+        }else if(localStorage.getItem('name') !== 'muhammad wahyu ramadhan'){
+            setName('Kamu bukan admin!')
+        }
+    }, [])
 
     return (
         <div className="sectionBarangMasuk">
-
-
             <h1>Table Barang Masuk ATK</h1>
+            <h1 ref={nama}>{name}</h1>
             {loadingMasukAtk &&
                 <Table
                     data={barangMasukAtk}
@@ -47,7 +64,7 @@ export const BarangMasukAtk = () => {
                     table2='stokBarangAtk'
                     Thtd={Thtd}
                     Tbtd={Tbtd}
-                    isQty={true}
+                    isQty={qty}
                 />}
             <InsertForm
                 collPertama='barangMasukAtk'
